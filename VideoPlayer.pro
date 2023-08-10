@@ -15,6 +15,7 @@ SOURCES += \
         Miscelaneous.cpp \
         WAudioLevel.cpp \
         WHistogramWidget.cpp \
+        WVideoWidget.cpp \
         main.cpp \
         WFrameProcessor.cpp
 
@@ -27,4 +28,5 @@ HEADERS += \
     Miscelaneous.h \
     WAudioLevel.h \
     WFrameProcessor.h \
-    WHistogramWidget.h
+    WHistogramWidget.h \
+    WVideoWidget.h

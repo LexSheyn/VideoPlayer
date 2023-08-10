@@ -210,11 +210,6 @@ QVector<qreal> computeAudioBufferLevels(const QAudioBuffer &buffer)
 }
 
 
-// TO DO:
-// File: https://code.qt.io/cgit/qt/qtmultimedia.git/tree/examples/multimediawidgets/player/histogramwidget.cpp?h=5.15
-// Line: 205
-
-
 
 
 
