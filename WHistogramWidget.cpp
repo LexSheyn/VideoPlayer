@@ -77,12 +77,48 @@ void WHistogramWidget::processAudioBuffer(const QAudioBuffer &audioBuffer)
 
 void WHistogramWidget::setHistogram(const QVector<qreal> &histogram)
 {
+    mb_busy = false;
 
+    m_histogram = histogram;
+
+    this->update();
 }
 
 void WHistogramWidget::paintEvent(QPaintEvent *event)
 {
+    Q_UNUSED(event);
 
+    if (!m_audioLevels.isEmpty())
+    {
+        return;
+    }
+
+    const qint32 width  = this->width();
+    const qint32 height = this->height();
+
+    QPainter painter(this);
+
+    if (m_histogram.isEmpty())
+    {
+        painter.fillRect(0, 0, width, height, Qt::black);
+
+        return;
+    }
+
+    const qreal barWidth = width / (qreal)m_histogram.size();
+
+    for (qint32 i = 0; i < m_histogram.size(); ++i)
+    {
+        const qreal barHeight = m_histogram[i] * height;
+
+        // Draw level.
+
+        painter.fillRect(barWidth * i, height - barHeight, barWidth * (i + 1), height, Qt::red);
+
+        // Clear the rest of the control.
+
+        painter.fillRect(barWidth * i, 0, barWidth * (i + 1), height - barHeight, Qt::black);
+    }
 }
 
 
