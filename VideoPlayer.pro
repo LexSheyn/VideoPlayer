@@ -14,6 +14,7 @@ CONFIG -= app_bundle
 SOURCES += \
         Miscelaneous.cpp \
         WAudioLevel.cpp \
+        WHistogramWidget.cpp \
         main.cpp \
         WFrameProcessor.cpp
 
