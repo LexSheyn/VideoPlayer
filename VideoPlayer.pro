@@ -29,4 +29,5 @@ HEADERS += \
     WAudioLevel.h \
     WFrameProcessor.h \
     WHistogramWidget.h \
+    WPlaylistModel.h \
     WVideoWidget.h
