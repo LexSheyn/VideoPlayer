@@ -16,9 +16,8 @@ protected:
 
     // QWidget.
 
-    virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseDoubleClickEvent(QMouseEvent* event) override;
-    virtual void keyPressEvent(QKeyEvent* event) override;
+    virtual void keyReleaseEvent(QKeyEvent* event) override;
 };
 
 #endif // WVIDEOWIDGET_H
