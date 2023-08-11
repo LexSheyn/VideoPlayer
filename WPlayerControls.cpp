@@ -8,7 +8,16 @@
 #include <QAudio>
 
 WPlayerControls::WPlayerControls(QWidget *parent)
-    : QWidget (parent)
+    : QWidget          (parent)
+    , m_playerState    (QMediaPlayer::StoppedState)
+    , mb_playerMuted   (false)
+    , m_playButton     (nullptr)
+    , m_stopButton     (nullptr)
+    , m_nextButton     (nullptr)
+    , m_previousButton (nullptr)
+    , m_muteButton     (nullptr)
+    , m_volumeSlider   (nullptr)
+    , m_rateBox        (nullptr)
 {
     const QStyle* style = this->style();
 

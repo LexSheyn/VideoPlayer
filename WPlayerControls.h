@@ -63,7 +63,3 @@ private:
 };
 
 #endif // WPLAYERCONTROLS_H
-
-// TO DO:
-// File: https://code.qt.io/cgit/qt/qtmultimedia.git/tree/examples/multimediawidgets/player/playercontrols.h?h=5.15
-// Line: 54
