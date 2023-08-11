@@ -132,22 +132,67 @@ void WPlayerControls::setState(QMediaPlayer::State state)
 
 void WPlayerControls::setVolume(qint32 volume)
 {
+    const qreal logarithmicVolume = QAudio::convertVolume(volume / qreal(100), QAudio::LinearVolumeScale, QAudio::LogarithmicVolumeScale);
 
+    m_volumeSlider->setValue(qRound(logarithmicVolume * 100));
 }
 
 void WPlayerControls::setMuted(bool b_muted)
 {
+    if (mb_playerMuted != b_muted)
+    {
+        mb_playerMuted = b_muted;
 
+        const QStyle* style = this->style();
+
+        if (mb_playerMuted)
+        {
+            m_muteButton->setIcon(style->standardIcon(QStyle::SP_MediaVolumeMuted));
+        }
+        else
+        {
+            m_muteButton->setIcon(style->standardIcon(QStyle::SP_MediaVolume));
+        }
+    }
 }
 
 void WPlayerControls::setPlaybackRate(qreal rate)
 {
+    for (qint32 i = 0; i < m_rateBox->count(); ++i)
+    {
+        if (qFuzzyCompare(rate, qreal(m_rateBox->itemData(i).toDouble())))
+        {
+            m_rateBox->setCurrentIndex(i);
 
+            return;
+        }
+    }
+
+    m_rateBox->addItem(QString("%1x").arg(rate), QVariant(rate));
+    m_rateBox->setCurrentIndex(m_rateBox->count() - 1);
 }
 
 void WPlayerControls::onPlayClicked()
 {
+    switch (m_playerState)
+    {
 
+    case QMediaPlayer::StoppedState:
+    case QMediaPlayer::PausedState:
+    {
+        emit play();
+
+        break;
+    }
+
+    case QMediaPlayer::PlayingState:
+    {
+        emit pause();
+
+        break;
+    }
+
+    }
 }
 
 void WPlayerControls::onMuteClicked()
