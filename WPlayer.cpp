@@ -113,9 +113,82 @@ WPlayer::WPlayer(QWidget *parent)
     controls->setVolume(m_player->volume());
     controls->setMuted(controls->isMuted());
 
-    // TO DO:
-    // File: https://code.qt.io/cgit/qt/qtmultimedia.git/tree/examples/multimediawidgets/player/player.cpp?h=5.15
-    // Line: 135
+    connect(controls, &WPlayerControls::play, m_player, &QMediaPlayer::play);
+    connect(controls, &WPlayerControls::pause, m_player, &QMediaPlayer::pause);
+    connect(controls, &WPlayerControls::stop, m_player, &QMediaPlayer::stop);
+    connect(controls, &WPlayerControls::next, m_playlist, &QMediaPlaylist::next);
+    connect(controls, &WPlayerControls::previous, this, &WPlayer::onPreviousClicked);
+    connect(controls, &WPlayerControls::volumeChanged, m_player, &QMediaPlayer::setVolume);
+    connect(controls, &WPlayerControls::muteChanged, m_player, &QMediaPlayer::setMuted);
+    connect(controls, &WPlayerControls::rateChanged, m_player, &QMediaPlayer::setPlaybackRate);
+    connect(controls, &WPlayerControls::stop, m_videoWidget, QOverload<>::of(&QVideoWidget::update));
+
+    connect(m_player, &QMediaPlayer::stateChanged, controls, &WPlayerControls::setState);
+    connect(m_player, &QMediaPlayer::volumeChanged, controls, &WPlayerControls::setVolume);
+    connect(m_player, &QMediaPlayer::mutedChanged, controls, &WPlayerControls::setMuted);
+
+    m_fullScreenButton = new QPushButton(tr("FullScreen"), this);
+    m_fullScreenButton->setCheckable(true);
+
+    m_colorButton = new QPushButton(tr("Color Options"), this);
+    m_colorButton->setEnabled(false);
+
+    connect(m_colorButton, &QPushButton::clicked, this, &WPlayer::showColorDialog);
+
+    QBoxLayout* displayLayout = new QHBoxLayout();
+
+    displayLayout->addWidget(m_videoWidget, 2);
+    displayLayout->addWidget(m_playlistView);
+
+    QBoxLayout* controlLayout = new QHBoxLayout();
+
+    controlLayout->setContentsMargins(0, 0, 0, 0);
+    controlLayout->addWidget(openButton);
+    controlLayout->addStretch(1);
+    controlLayout->addWidget(controls);
+    controlLayout->addStretch(1);
+    controlLayout->addWidget(m_fullScreenButton);
+    controlLayout->addWidget(m_colorButton);
+
+    QHBoxLayout* horizontalLayout = new QHBoxLayout();
+
+    horizontalLayout->addWidget(m_slider);
+    horizontalLayout->addWidget(m_durationLabel);
+
+    QBoxLayout* layout = new QVBoxLayout();
+
+    layout->addLayout(displayLayout);
+    layout->addLayout(horizontalLayout);
+    layout->addLayout(controlLayout);
+    layout->addLayout(histogramLayout);
+
+    m_statusLabel = new QLabel();
+
+    m_statusBar = new QStatusBar();
+    m_statusBar->addPermanentWidget(m_statusLabel);
+    m_statusBar->setSizeGripEnabled(false);
+
+    layout->addWidget(m_statusBar);
+
+    this->setLayout(layout);
+
+    if (!this->isPlayerAvailable())
+    {
+        QMessageBox::warning(this, tr("Service not available"), tr("The QMediaPlayer object does not have a valid service.\n"
+                                                                   "Please check that media service plugins are installed."));
+
+        controls->setEnabled(false);
+
+        m_playlistView->setEnabled(false);
+
+        openButton->setEnabled(false);
+
+        m_colorButton->setEnabled(false);
+
+        m_fullScreenButton->setEnabled(false);
+    }
+
+    this->onMetaDataChanged();
 }
 
 WPlayer::~WPlayer()
@@ -124,7 +197,9 @@ WPlayer::~WPlayer()
 
 bool WPlayer::isPlayerAvailable() const
 {
-
+    // TO DO:
+    // File: https://code.qt.io/cgit/qt/qtmultimedia.git/tree/examples/multimediawidgets/player/player.cpp?h=5.15
+    // Line: 210
 }
 
 void WPlayer::addToPlaylist(const QList<QUrl> &urls)
