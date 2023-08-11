@@ -17,7 +17,7 @@ public:
     enum Column
     {
         Title = 0,
-        ColumtCount
+        ColumnCount
     };
 
     explicit WPlaylistModel(QObject* parent = nullptr);
@@ -39,7 +39,7 @@ public:
 public:
 
     void setPlaylist(QMediaPlaylist* playlist);
-    QMediaPlaylist* getPlaylist() const;
+    QMediaPlaylist *getPlaylist() const;
 
 private slots:
 

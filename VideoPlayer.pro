@@ -15,6 +15,7 @@ SOURCES += \
         Miscelaneous.cpp \
         WAudioLevel.cpp \
         WHistogramWidget.cpp \
+        WPlaylistModel.cpp \
         WVideoWidget.cpp \
         main.cpp \
         WFrameProcessor.cpp
