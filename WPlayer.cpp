@@ -12,6 +12,18 @@
 #include <QMediaMetaData>
 #include <QtWidgets>
 
+static bool urlIsPlaylist(const QUrl& url)
+{
+    if (!url.isLocalFile())
+    {
+        return false;
+    }
+
+    const QFileInfo fileInfo(url.toLocalFile());
+
+    return fileInfo.exists() && (!fileInfo.suffix().compare(QLatin1String("m3u"), Qt::CaseInsensitive));
+}
+
 WPlayer::WPlayer(QWidget *parent)
     : QWidget            (parent)
     , m_player           (nullptr)
@@ -172,7 +184,7 @@ WPlayer::WPlayer(QWidget *parent)
 
     this->setLayout(layout);
 
-    if (!this->isPlayerAvailable())
+    if (!this->isAvailable())
     {
         QMessageBox::warning(this, tr("Service not available"), tr("The QMediaPlayer object does not have a valid service.\n"
                                                                    "Please check that media service plugins are installed."));
@@ -195,21 +207,31 @@ WPlayer::~WPlayer()
 {
 }
 
-bool WPlayer::isPlayerAvailable() const
+bool WPlayer::isAvailable() const
 {
-    // TO DO:
-    // File: https://code.qt.io/cgit/qt/qtmultimedia.git/tree/examples/multimediawidgets/player/player.cpp?h=5.15
-    // Line: 210
+    return m_player->isAvailable();
 }
 
 void WPlayer::addToPlaylist(const QList<QUrl> &urls)
 {
-
+    for (const auto& url : urls)
+    {
+        if (urlIsPlaylist(url))
+        {
+            m_playlist->load(url);
+        }
+        else
+        {
+            m_playlist->addMedia(url);
+        }
+    }
 }
 
 void WPlayer::setCustomAudioRole(const QString &role)
 {
-
+    // TO DO:
+    // File: https://code.qt.io/cgit/qt/qtmultimedia.git/tree/examples/multimediawidgets/player/player.cpp?h=5.15
+    // Line: 248
 }
 
 void WPlayer::onMetaDataChanged()

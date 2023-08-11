@@ -30,7 +30,7 @@ public:
     explicit WPlayer(QWidget* parent = nullptr);
     virtual ~WPlayer() override;
 
-    bool isPlayerAvailable() const;
+    bool isAvailable() const;
 
     void addToPlaylist(const QList<QUrl>& urls);
     void setCustomAudioRole(const QString& role);
