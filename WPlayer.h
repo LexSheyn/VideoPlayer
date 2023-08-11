@@ -41,24 +41,21 @@ signals:
 
 private slots:
 
-    void open();
+    void onMetaDataChanged();
+    void onStateChanged(QMediaPlayer::State state);
+    void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onDurationChanged(qint64 duration);
     void onPositionChanged(qint64 position);
-    void onMetaDataChanged();
+    void onVideoAvailableChanged(bool b_available);
+    void onBufferStatusChanged(qint32 percentFilled);
 
     void onPreviousClicked();
-
-    void seek(qint32 seconds);
-    void jump(const QModelIndex& index);
     void onPlaylistPositionChanged(qint32 position);
 
-    void onStatusChanged(QMediaPlayer::MediaStatus status);
-    void onStateChanged(QMediaPlayer::State state);
-    void onBufferProgressChanged(qint32 progress);
-    void onVideoAvailableChanged(bool b_available);
-
+    void open();
+    void seek(qint32 seconds);
+    void jump(const QModelIndex& index);
     void displayErrorMessage();
-
     void showColorDialog();
 
 private:
@@ -73,7 +70,7 @@ private:
 
     QMediaPlayer*      m_player;
     QMediaPlaylist*    m_playlist;
-    QVideoWidget*      m_vieoWidget;
+    QVideoWidget*      m_videoWidget;
     QLabel*            m_coverLabel;
     QSlider*           m_slider;
     QLabel*            m_durationLabel;
@@ -98,10 +95,6 @@ private:
 
 #endif // WPLAYER_H
 
-
-// TO DO:
-// File: https://code.qt.io/cgit/qt/qtmultimedia.git/tree/examples/multimediawidgets/player/player.h?h=5.15
-// Line: 113
 
 
 
