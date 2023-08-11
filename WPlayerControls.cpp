@@ -101,31 +101,29 @@ void WPlayerControls::setState(QMediaPlayer::State state)
 
         switch (m_playerState)
         {
+            case QMediaPlayer::StoppedState:
+            {
+                m_stopButton->setEnabled(false);
+                m_playButton->setIcon(style->standardIcon(QStyle::SP_MediaPlay));
 
-        case QMediaPlayer::StoppedState:
-        {
-            m_stopButton->setEnabled(false);
-            m_playButton->setIcon(style->standardIcon(QStyle::SP_MediaPlay));
+                break;
+            }
 
-            break;
-        }
+            case QMediaPlayer::PlayingState:
+            {
+                m_stopButton->setEnabled(true);
+                m_playButton->setIcon(style->standardIcon(QStyle::SP_MediaPause));
 
-        case QMediaPlayer::PlayingState:
-        {
-            m_stopButton->setEnabled(true);
-            m_playButton->setIcon(style->standardIcon(QStyle::SP_MediaPause));
+                break;
+            }
 
-            break;
-        }
+            case QMediaPlayer::PausedState:
+            {
+                m_stopButton->setEnabled(true);
+                m_playButton->setIcon(style->standardIcon(QStyle::SP_MediaPlay));
 
-        case QMediaPlayer::PausedState:
-        {
-            m_stopButton->setEnabled(true);
-            m_playButton->setIcon(style->standardIcon(QStyle::SP_MediaPlay));
-
-            break;
-        }
-
+                break;
+            }
         }
     }
 }
@@ -176,36 +174,38 @@ void WPlayerControls::onPlayClicked()
 {
     switch (m_playerState)
     {
+        case QMediaPlayer::StoppedState:
+        case QMediaPlayer::PausedState:
+        {
+            emit this->play();
 
-    case QMediaPlayer::StoppedState:
-    case QMediaPlayer::PausedState:
-    {
-        emit play();
+            break;
+        }
 
-        break;
-    }
+        case QMediaPlayer::PlayingState:
+        {
+            emit this->pause();
 
-    case QMediaPlayer::PlayingState:
-    {
-        emit pause();
-
-        break;
-    }
-
+            break;
+        }
     }
 }
 
 void WPlayerControls::onMuteClicked()
 {
-
+    emit this->muteChanged(!mb_playerMuted);
 }
 
 void WPlayerControls::onRateUpdated()
 {
+    const qreal playbackRate = this->playbackRate();
 
+    emit this->rateChanged(playbackRate);
 }
 
 void WPlayerControls::onVolumeSliderValueChanged()
 {
+    const qint32 volume = this->volume();
 
+    emit this->volumeChanged(volume);
 }
