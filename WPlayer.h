@@ -49,7 +49,6 @@ private slots:
     void onVideoAvailableChanged(bool b_available);
     void onBufferStatusChanged(qint32 percentFilled);
 
-    void onPreviousClicked();
     void onPlaylistPositionChanged(qint32 position);
 
     void open();

@@ -129,7 +129,7 @@ WPlayer::WPlayer(QWidget *parent)
     connect(controls, &WPlayerControls::pause, m_player, &QMediaPlayer::pause);
     connect(controls, &WPlayerControls::stop, m_player, &QMediaPlayer::stop);
     connect(controls, &WPlayerControls::next, m_playlist, &QMediaPlaylist::next);
-    connect(controls, &WPlayerControls::previous, this, &WPlayer::onPreviousClicked);
+    connect(controls, &WPlayerControls::previous, m_playlist, &QMediaPlaylist::previous);
     connect(controls, &WPlayerControls::volumeChanged, m_player, &QMediaPlayer::setVolume);
     connect(controls, &WPlayerControls::muteChanged, m_player, &QMediaPlayer::setMuted);
     connect(controls, &WPlayerControls::rateChanged, m_player, &QMediaPlayer::setPlaybackRate);
@@ -229,69 +229,190 @@ void WPlayer::addToPlaylist(const QList<QUrl> &urls)
 
 void WPlayer::setCustomAudioRole(const QString &role)
 {
-    // TO DO:
-    // File: https://code.qt.io/cgit/qt/qtmultimedia.git/tree/examples/multimediawidgets/player/player.cpp?h=5.15
-    // Line: 248
+    m_player->setCustomAudioRole(role);
 }
 
 void WPlayer::onMetaDataChanged()
 {
+    if (m_player->isMetaDataAvailable())
+    {
+        this->setTrackInfo(QString("%1 - %2")
+                           .arg(m_player->metaData(QMediaMetaData::AlbumArtist).toString())
+                           .arg(m_player->metaData(QMediaMetaData::Title).toString()));
 
+        if (m_coverLabel)
+        {
+            const QUrl url = m_player->metaData(QMediaMetaData::CoverArtUrlLarge).value<QUrl>();
+
+            QPixmap pixmap;
+
+            if (!url.isEmpty())
+            {
+                pixmap = QPixmap(url.toString());
+            }
+
+            m_coverLabel->setPixmap(pixmap);
+        }
+    }
 }
 
 void WPlayer::onStateChanged(QMediaPlayer::State state)
 {
-
+    if (state == QMediaPlayer::StoppedState)
+    {
+        this->clearHistogram();
+    }
 }
 
 void WPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
+    this->handleCursor(status);
 
+    switch (status)
+    {
+    case QMediaPlayer::UnknownMediaStatus:
+    case QMediaPlayer::NoMedia:
+    case QMediaPlayer::LoadedMedia:
+    {
+        this->setStatusInfo(QString());
+
+        break;
+    }
+    case QMediaPlayer::LoadingMedia:
+    {
+        this->setStatusInfo(tr("Loading media..."));
+
+        break;
+    }
+    case QMediaPlayer::BufferingMedia:
+    case QMediaPlayer::BufferedMedia:
+    {
+        this->setStatusInfo(tr("Buffering %1%").arg(m_player->bufferStatus()));
+
+        break;
+    }
+    case QMediaPlayer::StalledMedia:
+    {
+        this->setStatusInfo(tr("Stalled %1%").arg(m_player->bufferStatus()));
+
+        break;
+    }
+    case QMediaPlayer::EndOfMedia:
+    {
+        QApplication::alert(this);
+
+        break;
+    }
+    case QMediaPlayer::InvalidMedia:
+    {
+        this->displayErrorMessage();
+
+        break;
+    }
+    default: break;
+    }
 }
 
 void WPlayer::onDurationChanged(qint64 duration)
 {
+    m_duration = duration / 1000;
 
+    m_slider->setMaximum(m_duration);
 }
 
 void WPlayer::onPositionChanged(qint64 position)
 {
+    const qint64 duration = position / 1000;
 
+    if (!m_slider->isSliderDown())
+    {
+        m_slider->setValue(duration);
+    }
+
+    this->updateDurationInfo(duration);
 }
 
 void WPlayer::onVideoAvailableChanged(bool b_available)
 {
+    if (!b_available)
+    {
+        disconnect(m_fullScreenButton, &QPushButton::clicked, m_videoWidget, &QVideoWidget::setFullScreen);
+        disconnect(m_videoWidget, &QVideoWidget::fullScreenChanged, m_fullScreenButton, &QPushButton::setChecked);
 
+        m_videoWidget->setFullScreen(false);
+    }
+    else
+    {
+        connect(m_fullScreenButton, &QPushButton::clicked, m_videoWidget, &QVideoWidget::setFullScreen);
+        connect(m_videoWidget, &QVideoWidget::fullScreenChanged, m_fullScreenButton, &QPushButton::setChecked);
+
+        if (m_fullScreenButton->isChecked())
+        {
+            m_videoWidget->setFullScreen(true);
+        }
+    }
+
+    m_colorButton->setEnabled(b_available);
 }
 
 void WPlayer::onBufferStatusChanged(qint32 percentFilled)
 {
-
-}
-
-void WPlayer::onPreviousClicked()
-{
-
+    if (m_player->mediaStatus() == QMediaPlayer::StalledMedia)
+    {
+        this->setStatusInfo(tr("Stalled %1%").arg(percentFilled));
+    }
+    else
+    {
+        this->setStatusInfo(tr("Buffering %1%").arg(percentFilled));
+    }
 }
 
 void WPlayer::onPlaylistPositionChanged(qint32 position)
 {
+    this->clearHistogram();
 
+    m_playlistView->setCurrentIndex(m_playlistModel->index(position, 0));
 }
 
 void WPlayer::open()
 {
+    QFileDialog fileDialog(this);
 
+    fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    fileDialog.setWindowTitle(tr("Open Files"));
+
+    QStringList supportedMimeTypes = m_player->supportedMimeTypes();
+
+    if (!supportedMimeTypes.isEmpty())
+    {
+        supportedMimeTypes.append("audio/x-m3u"); // MP3 playlists.
+
+        fileDialog.setMimeTypeFilters(supportedMimeTypes);
+    }
+
+    const QString videoPath = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath());
+
+    fileDialog.setDirectory(videoPath);
+
+    if (fileDialog.exec() == QDialog::Accepted)
+    {
+        this->addToPlaylist(fileDialog.selectedUrls());
+    }
 }
 
 void WPlayer::seek(qint32 seconds)
 {
-
+    m_player->setPosition(seconds * 1000);
 }
 
 void WPlayer::jump(const QModelIndex &index)
 {
+    if (index.isValid())
+    {
+        m_playlist->setCurrentIndex(index.row());
 
+        m_player->play();
+    }
 }
 
 void WPlayer::displayErrorMessage()
@@ -328,3 +449,48 @@ void WPlayer::updateDurationInfo(qint64 durationInfo)
 {
 
 }
+
+// TO DO:
+// File: https://code.qt.io/cgit/qt/qtmultimedia.git/tree/examples/multimediawidgets/player/player.cpp?h=5.15
+// Line: 248
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
